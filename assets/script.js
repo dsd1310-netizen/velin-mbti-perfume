@@ -119,7 +119,7 @@ function showPickerStep() {
 async function showResultStep(code) {
   document.getElementById('stepPicker').hidden = true;
   document.getElementById('stepResult').hidden = false;
-  await drawResultCard(code);
+  await drawResultCard(code, currentFormat);
 }
 
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -140,10 +140,44 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   return curY;
 }
 
-async function drawResultCard(code) {
+const LAYOUTS = {
+  square: {
+    H: 1080,
+    eyebrowY: 96, eyebrowFont: 24,
+    codeY: 160, codeFont: 54,
+    groupY: 196, groupFont: 22,
+    bottleTopY: 320, bottleScale: 1,
+    nameGap: 54, nameFont: 62,
+    krGap: 94, krFont: 28,
+    descGap: 136, descFont: 26, descLineHeight: 36,
+    notesFallbackGap: 230, notesLabelFont: 22, notesValueFont: 22,
+    notesLineHeight: 28, notesLabelGap: 36, notesTopGap: 34, notesDividerBottom: 66,
+    footerNameOffset: 58, footerNameFont: 30,
+    footerHandleOffset: 26, footerHandleFont: 20,
+  },
+  story: {
+    H: 1920,
+    eyebrowY: 160, eyebrowFont: 26,
+    codeY: 246, codeFont: 66,
+    groupY: 288, groupFont: 24,
+    bottleTopY: 440, bottleScale: 1.12,
+    nameGap: 76, nameFont: 72,
+    krGap: 124, krFont: 32,
+    descGap: 172, descFont: 29, descLineHeight: 42,
+    notesFallbackGap: 300, notesLabelFont: 25, notesValueFont: 25,
+    notesLineHeight: 32, notesLabelGap: 44, notesTopGap: 40, notesDividerBottom: 86,
+    footerNameOffset: 96, footerNameFont: 36,
+    footerHandleOffset: 54, footerHandleFont: 23,
+  },
+};
+
+async function drawResultCard(code, format = 'square') {
   const item = DATA_BY_CODE[code];
   const meta = GROUP_META[item.group];
+  const layout = LAYOUTS[format] || LAYOUTS.square;
   const canvas = document.getElementById('resultCanvas');
+  canvas.width = 1080;
+  canvas.height = layout.H;
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
 
@@ -181,58 +215,58 @@ async function drawResultCard(code) {
 
   // Eyebrow
   ctx.fillStyle = meta.accent;
-  ctx.font = '600 24px "Noto Sans KR", sans-serif';
+  ctx.font = `600 ${layout.eyebrowFont}px "Noto Sans KR", sans-serif`;
   ctx.textAlign = 'center';
   ctx.letterSpacing = '4px';
-  ctx.fillText('YOUR VELIN SCENT', W / 2, 96);
+  ctx.fillText('YOUR VELIN SCENT', W / 2, layout.eyebrowY);
   ctx.letterSpacing = '0px';
 
   // MBTI code
   ctx.fillStyle = '#f6ece1';
-  ctx.font = '700 54px "Playfair Display", serif';
-  ctx.fillText(item.code, W / 2, 160);
+  ctx.font = `700 ${layout.codeFont}px "Playfair Display", serif`;
+  ctx.fillText(item.code, W / 2, layout.codeY);
 
   // group label
   ctx.fillStyle = hexToRgba('#f6ece1', 0.62);
-  ctx.font = '500 22px "Noto Sans KR", sans-serif';
-  ctx.fillText(`${meta.label} · ${meta.sub}`, W / 2, 196);
+  ctx.font = `500 ${layout.groupFont}px "Noto Sans KR", sans-serif`;
+  ctx.fillText(`${meta.label} · ${meta.sub}`, W / 2, layout.groupY);
 
   // Bottle illustration — the visual centerpiece
-  const bottle = drawBottle(ctx, W / 2, 320, meta);
+  const bottle = drawBottle(ctx, W / 2, layout.bottleTopY, meta, layout.bottleScale);
 
   // Perfume name
   ctx.fillStyle = '#f6ece1';
-  ctx.font = '600 62px "Playfair Display", serif';
-  ctx.fillText(item.name, W / 2, bottle.bottomY + 54);
+  ctx.font = `600 ${layout.nameFont}px "Playfair Display", serif`;
+  ctx.fillText(item.name, W / 2, bottle.bottomY + layout.nameGap);
 
   // Korean name
   ctx.fillStyle = meta.accent;
-  ctx.font = '600 28px "Noto Serif KR", serif';
-  ctx.fillText(item.nameKr, W / 2, bottle.bottomY + 94);
+  ctx.font = `600 ${layout.krFont}px "Noto Serif KR", serif`;
+  ctx.fillText(item.nameKr, W / 2, bottle.bottomY + layout.krGap);
 
   // Description (wrapped, centered)
   ctx.fillStyle = hexToRgba('#f6ece1', 0.86);
-  ctx.font = '400 26px "Noto Sans KR", sans-serif';
+  ctx.font = `400 ${layout.descFont}px "Noto Sans KR", sans-serif`;
   ctx.textAlign = 'center';
-  const descEndY = drawWrappedCentered(ctx, item.desc, W / 2, bottle.bottomY + 136, W * 0.72, 36);
+  const descEndY = drawWrappedCentered(ctx, item.desc, W / 2, bottle.bottomY + layout.descGap, W * 0.72, layout.descLineHeight);
 
   // Notes pyramid
-  const notesY = Math.max(descEndY + 50, bottle.bottomY + 230);
+  const notesY = Math.max(descEndY + 50, bottle.bottomY + layout.notesFallbackGap);
   ctx.strokeStyle = hexToRgba('#f6ece1', 0.18);
   ctx.beginPath();
-  ctx.moveTo(W * 0.1, notesY - 34);
-  ctx.lineTo(W * 0.9, notesY - 34);
+  ctx.moveTo(W * 0.1, notesY - layout.notesTopGap);
+  ctx.lineTo(W * 0.9, notesY - layout.notesTopGap);
   ctx.stroke();
-  drawNotesPyramid(ctx, W, notesY, meta, item);
+  drawNotesPyramid(ctx, W, notesY, meta, item, layout);
 
   // Footer / watermark
   ctx.textAlign = 'center';
   ctx.fillStyle = '#f6ece1';
-  ctx.font = '700 30px "Playfair Display", serif';
-  ctx.fillText('VELIN', W / 2, H - 58);
+  ctx.font = `700 ${layout.footerNameFont}px "Playfair Display", serif`;
+  ctx.fillText('VELIN', W / 2, H - layout.footerNameOffset);
   ctx.fillStyle = hexToRgba('#f6ece1', 0.6);
-  ctx.font = '400 20px "Noto Sans KR", sans-serif';
-  ctx.fillText('@_velin_office', W / 2, H - 26);
+  ctx.font = `400 ${layout.footerHandleFont}px "Noto Sans KR", sans-serif`;
+  ctx.fillText('@_velin_office', W / 2, H - layout.footerHandleOffset);
 }
 
 function roundRectPath(ctx, x, y, w, h, r) {
@@ -249,11 +283,11 @@ function roundRectPath(ctx, x, y, w, h, r) {
   }
 }
 
-function drawBottle(ctx, cx, topY, meta) {
-  const bodyW = 250, bodyH = 360, radius = 26;
+function drawBottle(ctx, cx, topY, meta, scale = 1) {
+  const bodyW = 250 * scale, bodyH = 360 * scale, radius = 26 * scale;
   const bodyX = cx - bodyW / 2, bodyY = topY;
-  const capW = 104, capH = 50;
-  const neckW = 54, neckH = 28;
+  const capW = 104 * scale, capH = 50 * scale;
+  const neckW = 54 * scale, neckH = 28 * scale;
   const neckY = bodyY - neckH;
   const capY = neckY - capH;
 
@@ -261,7 +295,7 @@ function drawBottle(ctx, cx, topY, meta) {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.28)';
   ctx.beginPath();
-  ctx.ellipse(cx, bodyY + bodyH + 16, bodyW * 0.42, 20, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, bodyY + bodyH + 16 * scale, bodyW * 0.42, 20 * scale, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
@@ -300,7 +334,7 @@ function drawBottle(ctx, cx, topY, meta) {
   ctx.translate(bodyX + bodyW * 0.26, 0);
   ctx.rotate(-0.22);
   ctx.fillStyle = 'rgba(255,255,255,0.14)';
-  ctx.fillRect(-20, bodyY - 40, 40, bodyH + 80);
+  ctx.fillRect(-20 * scale, bodyY - 40 * scale, 40 * scale, bodyH + 80 * scale);
   ctx.restore();
 
   ctx.restore(); // release clip
@@ -312,24 +346,24 @@ function drawBottle(ctx, cx, topY, meta) {
   ctx.stroke();
 
   // brand monogram plate
-  const plateW = 116, plateH = 60;
+  const plateW = 116 * scale, plateH = 60 * scale;
   const plateY = bodyY + bodyH * 0.56;
-  roundRectPath(ctx, cx - plateW / 2, plateY, plateW, plateH, 8);
+  roundRectPath(ctx, cx - plateW / 2, plateY, plateW, plateH, 8 * scale);
   ctx.fillStyle = 'rgba(18,18,14,0.3)';
   ctx.fill();
-  roundRectPath(ctx, cx - plateW / 2, plateY, plateW, plateH, 8);
+  roundRectPath(ctx, cx - plateW / 2, plateY, plateW, plateH, 8 * scale);
   ctx.strokeStyle = 'rgba(246,236,225,0.4)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
   ctx.fillStyle = '#f6ece1';
-  ctx.font = '700 24px "Playfair Display", serif';
+  ctx.font = `700 ${24 * scale}px "Playfair Display", serif`;
   ctx.textAlign = 'center';
-  ctx.fillText('VELIN', cx, plateY + plateH / 2 + 8);
+  ctx.fillText('VELIN', cx, plateY + plateH / 2 + 8 * scale);
 
-  return { bottomY: bodyY + bodyH + 26 };
+  return { bottomY: bodyY + bodyH + 26 * scale };
 }
 
-function drawNotesPyramid(ctx, W, y, meta, item) {
+function drawNotesPyramid(ctx, W, y, meta, item, layout) {
   const cols = [
     { label: 'TOP', val: item.top },
     { label: 'MIDDLE', val: item.mid },
@@ -341,17 +375,17 @@ function drawNotesPyramid(ctx, W, y, meta, item) {
     if (i > 0) {
       ctx.strokeStyle = hexToRgba('#f6ece1', 0.14);
       ctx.beginPath();
-      ctx.moveTo(colW * i, y - 32);
-      ctx.lineTo(colW * i, y + 66);
+      ctx.moveTo(colW * i, y - layout.notesTopGap);
+      ctx.lineTo(colW * i, y + layout.notesDividerBottom);
       ctx.stroke();
     }
     ctx.textAlign = 'center';
     ctx.fillStyle = meta.accent;
-    ctx.font = '700 22px "Playfair Display", serif';
+    ctx.font = `700 ${layout.notesLabelFont}px "Playfair Display", serif`;
     ctx.fillText(col.label, cx, y);
     ctx.fillStyle = hexToRgba('#f6ece1', 0.85);
-    ctx.font = '400 22px "Noto Sans KR", sans-serif';
-    drawWrappedCentered(ctx, col.val, cx, y + 36, colW - 56, 28);
+    ctx.font = `400 ${layout.notesValueFont}px "Noto Sans KR", sans-serif`;
+    drawWrappedCentered(ctx, col.val, cx, y + layout.notesLabelGap, colW - 56, layout.notesLineHeight);
   });
 }
 
@@ -397,10 +431,10 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function downloadCanvasImage(code) {
+function downloadCanvasImage(code, format) {
   const canvas = document.getElementById('resultCanvas');
   const link = document.createElement('a');
-  link.download = `VELIN_${code}.png`;
+  link.download = `VELIN_${code}_${format}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
 }
@@ -409,12 +443,12 @@ function canvasToBlob(canvas) {
   return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 }
 
-async function shareResultImage(code) {
+async function shareResultImage(code, format) {
   const item = DATA_BY_CODE[code];
   const canvas = document.getElementById('resultCanvas');
   const blob = await canvasToBlob(canvas);
   if (!blob) return;
-  const file = new File([blob], `VELIN_${code}.png`, { type: 'image/png' });
+  const file = new File([blob], `VELIN_${code}_${format}.png`, { type: 'image/png' });
   const shareData = {
     files: [file],
     title: `VELIN | ${item.code} ${item.name}`,
@@ -437,6 +471,7 @@ async function shareResultImage(code) {
 }
 
 let currentCode = null;
+let currentFormat = 'square';
 
 document.addEventListener('DOMContentLoaded', () => {
   renderCards();
@@ -475,16 +510,27 @@ document.addEventListener('DOMContentLoaded', () => {
     showResultStep(currentCode);
   });
 
+  // Format toggle (1:1 square / 9:16 story)
+  const formatToggle = document.getElementById('formatToggle');
+  formatToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('.format-btn');
+    if (!btn || btn.dataset.format === currentFormat) return;
+    currentFormat = btn.dataset.format;
+    formatToggle.querySelectorAll('.format-btn').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    if (currentCode) drawResultCard(currentCode, currentFormat);
+  });
+
   // Result step actions
   document.getElementById('saveImageBtn').addEventListener('click', () => {
-    if (currentCode) downloadCanvasImage(currentCode);
+    if (currentCode) downloadCanvasImage(currentCode, currentFormat);
   });
 
   const shareBtn = document.getElementById('shareBtn');
   if (navigator.share) {
     shareBtn.hidden = false;
     shareBtn.addEventListener('click', () => {
-      if (currentCode) shareResultImage(currentCode);
+      if (currentCode) shareResultImage(currentCode, currentFormat);
     });
   }
 
