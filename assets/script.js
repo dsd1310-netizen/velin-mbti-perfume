@@ -405,6 +405,37 @@ function downloadCanvasImage(code) {
   link.click();
 }
 
+function canvasToBlob(canvas) {
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+async function shareResultImage(code) {
+  const item = DATA_BY_CODE[code];
+  const canvas = document.getElementById('resultCanvas');
+  const blob = await canvasToBlob(canvas);
+  if (!blob) return;
+  const file = new File([blob], `VELIN_${code}.png`, { type: 'image/png' });
+  const shareData = {
+    files: [file],
+    title: `VELIN | ${item.code} ${item.name}`,
+    text: `내 MBTI 시그니처 향수는 ${item.name}(${item.nameKr})! VELIN에서 당신의 향도 찾아보세요.`,
+  };
+
+  if (navigator.canShare && navigator.canShare(shareData)) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error(err);
+    }
+  } else if (navigator.share) {
+    try {
+      await navigator.share({ title: shareData.title, text: shareData.text, url: location.href });
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error(err);
+    }
+  }
+}
+
 let currentCode = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -448,6 +479,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('saveImageBtn').addEventListener('click', () => {
     if (currentCode) downloadCanvasImage(currentCode);
   });
+
+  const shareBtn = document.getElementById('shareBtn');
+  if (navigator.share) {
+    shareBtn.hidden = false;
+    shareBtn.addEventListener('click', () => {
+      if (currentCode) shareResultImage(currentCode);
+    });
+  }
+
   document.getElementById('backToPickerBtn').addEventListener('click', showPickerStep);
 
   // Filter buttons
