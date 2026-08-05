@@ -300,6 +300,12 @@ p { margin: 0; }
 .conc-card p { font-size: 14px; color: rgba(246,236,217,0.7); line-height: 1.7; }
 
 /* ---------- COLLECTION ---------- */
+.compat { padding: 140px 0; background: var(--forest-900); color: var(--cream); text-align: center; }
+.compat .display-lg { color: var(--cream); }
+.compat .lead { color: rgba(246,236,217,0.78); }
+.compat-cta { margin-top: 40px; }
+.compat-cta .btn { padding: 16px 40px; }
+
 .collection { padding: 140px 0; background: var(--paper); }
 .collection .display-lg { color: var(--forest-900); }
 
@@ -403,6 +409,14 @@ p { margin: 0; }
   color: var(--forest-900); cursor: pointer; transition: all 0.2s ease;
 }
 .picker-btn:hover { background: var(--forest-900); color: var(--cream); border-color: var(--forest-900); }
+.picker-btn.is-active { background: var(--forest-900); color: var(--cream); border-color: var(--forest-900); }
+.picker-label {
+  font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #9a9a86; text-align: center; margin: 22px 0 10px;
+}
+.picker-label:first-of-type { margin-top: 4px; }
+.compat-go { display: block; width: 100%; margin-top: 28px; padding: 14px 20px; }
+.compat-go:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .format-toggle {
   display: flex; gap: 8px; justify-content: center; margin-bottom: 16px;
