@@ -117,14 +117,40 @@ function renderPickerGrid() {
   `).join('');
 }
 
+let lastFocusedEl = null;
+
+function getFocusable(container) {
+  return Array.from(container.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])'))
+    .filter(el => !el.disabled && el.offsetParent !== null);
+}
+
+function trapFocus(e, modal) {
+  if (e.key !== 'Tab') return;
+  const focusable = getFocusable(modal);
+  if (!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+}
+
 function openModal(id = 'scentModal') {
-  document.getElementById(id).classList.add('is-open');
+  lastFocusedEl = document.activeElement;
+  const modal = document.getElementById(id);
+  modal.classList.add('is-open');
   document.body.style.overflow = 'hidden';
+  const focusable = getFocusable(modal);
+  (focusable[0] || modal).focus();
 }
 
 function closeModal(id = 'scentModal') {
   document.getElementById(id).classList.remove('is-open');
   document.body.style.overflow = '';
+  if (lastFocusedEl) lastFocusedEl.focus();
 }
 
 function showPickerStep() {
@@ -698,7 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Modal close (X button + overlay click)
   const overlay = document.getElementById('scentModal');
-  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalClose').addEventListener('click', () => closeModal());
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeModal();
   });
