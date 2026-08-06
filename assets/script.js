@@ -185,6 +185,32 @@ async function drawResultCard(code, format = 'square') {
     try { await document.fonts.ready; } catch (e) {}
   }
 
+  // Measure how tall the content block will actually be (description/notes wrap
+  // differently per item), then vertically center that block above the footer —
+  // otherwise short descriptions leave a large empty gap on the tall 9:16 canvas.
+  ctx.font = `400 ${layout.descFont}px "Noto Sans KR", sans-serif`;
+  const descLines = measureWrappedLineCount(ctx, item.desc, W * 0.72);
+  ctx.font = `400 ${layout.notesValueFont}px "Noto Sans KR", sans-serif`;
+  const noteColW = W / 3 - 56;
+  const noteLines = Math.max(
+    measureWrappedLineCount(ctx, item.top, noteColW),
+    measureWrappedLineCount(ctx, item.mid, noteColW),
+    measureWrappedLineCount(ctx, item.base, noteColW)
+  );
+  const bottleSpan = (360 + 26) * layout.bottleScale;
+  const descEndFromBottle = layout.descGap + (descLines - 1) * layout.descLineHeight;
+  const notesYFromBottle = Math.max(descEndFromBottle + 50, layout.notesFallbackGap);
+  const contentBottom = layout.bottleTopY + bottleSpan + notesYFromBottle
+    + layout.notesDividerBottom + (noteLines - 1) * layout.notesLineHeight;
+  const contentTop = layout.eyebrowY - layout.eyebrowFont;
+  const footerTop = H - layout.footerNameOffset - layout.footerNameFont * 0.5;
+  const yOffset = Math.max(0, (footerTop - (contentBottom - contentTop)) / 2 - contentTop);
+
+  const eyebrowY = layout.eyebrowY + yOffset;
+  const codeY = layout.codeY + yOffset;
+  const groupY = layout.groupY + yOffset;
+  const bottleTopY = layout.bottleTopY + yOffset;
+
   // Background
   const bg = ctx.createLinearGradient(0, 0, W, H);
   bg.addColorStop(0, meta.bg1);
@@ -218,21 +244,21 @@ async function drawResultCard(code, format = 'square') {
   ctx.font = `600 ${layout.eyebrowFont}px "Noto Sans KR", sans-serif`;
   ctx.textAlign = 'center';
   ctx.letterSpacing = '4px';
-  ctx.fillText('YOUR VELIN SCENT', W / 2, layout.eyebrowY);
+  ctx.fillText('YOUR VELIN SCENT', W / 2, eyebrowY);
   ctx.letterSpacing = '0px';
 
   // MBTI code
   ctx.fillStyle = '#f6ece1';
   ctx.font = `700 ${layout.codeFont}px "Playfair Display", serif`;
-  ctx.fillText(item.code, W / 2, layout.codeY);
+  ctx.fillText(item.code, W / 2, codeY);
 
   // group label
   ctx.fillStyle = hexToRgba('#f6ece1', 0.62);
   ctx.font = `500 ${layout.groupFont}px "Noto Sans KR", sans-serif`;
-  ctx.fillText(`${meta.label} · ${meta.sub}`, W / 2, layout.groupY);
+  ctx.fillText(`${meta.label} · ${meta.sub}`, W / 2, groupY);
 
   // Bottle illustration — the visual centerpiece
-  const bottle = drawBottle(ctx, W / 2, layout.bottleTopY, meta, layout.bottleScale);
+  const bottle = drawBottle(ctx, W / 2, bottleTopY, meta, layout.bottleScale);
 
   // Perfume name
   ctx.fillStyle = '#f6ece1';
@@ -405,6 +431,22 @@ function drawWrappedCentered(ctx, text, cx, y, maxWidth, lineHeight) {
   if (line) lines.push(line);
   lines.forEach((l, i) => ctx.fillText(l, cx, y + i * lineHeight));
   return y + (lines.length - 1) * lineHeight;
+}
+
+function measureWrappedLineCount(ctx, text, maxWidth) {
+  const words = text.split(' ');
+  let lineCount = 1;
+  let line = '';
+  words.forEach(word => {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lineCount++;
+      line = word;
+    } else {
+      line = test;
+    }
+  });
+  return lineCount;
 }
 
 function drawSpark(ctx, cx, cy, size, color) {
