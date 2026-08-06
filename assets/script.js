@@ -46,13 +46,13 @@ const MBTI_DATA = [
   // SP — 탐험가
   { code: 'ISTP', group: 'SP', name: 'MECHANICA', nameKr: '메카니카 · 손끝의 감각',
     desc: '몸으로 부딪히며 배우는 사람. 시원한 아쿠아틱과 그린 우디가 실용적인 감성을 담는다.',
-    top: '라임, 자몽', mid: '아쿠아, 유칼립투스', base: '베티버, 파인우드' },
+    top: '라임, 히노키', mid: '아쿠아, 유칼립투스', base: '베티버, 파인우드' },
   { code: 'ISFP', group: 'SP', name: 'SILENT BLOOM', nameKr: '사일런트 블룸 · 고요한 감각',
     desc: '조용히 아름다움을 알아보는 예술가. 부드러운 베리와 로즈가 섬세한 감성을 그린다.',
     top: '복숭아, 라임', mid: '블랙베리, 화이트로즈', base: '오리스콘크리트, 머스크' },
   { code: 'ESTP', group: 'SP', name: 'RUSH', nameKr: '러시 · 지금 이 순간',
     desc: '망설임 없이 뛰어드는 사람. 짜릿한 시트러스와 베리가 즉각적인 에너지를 전한다.',
-    top: '라임, 블랙체리', mid: '블랙커런트, 버베나', base: '머스크, 파인우드' },
+    top: '라임, 블랙체리', mid: '블랙커런트, 오션', base: '머스크, 파인우드' },
   { code: 'ESFP', group: 'SP', name: 'SUNCATCH', nameKr: '선캐치 · 무대 위의 반짝임',
     desc: '존재만으로 분위기를 밝히는 사람. 화사한 트로피컬 플로럴이 경쾌한 즐거움을 담는다.',
     top: '자몽, 만다린', mid: '일랑일랑, 오렌지플라워', base: '바닐라, 앰버' },
@@ -324,7 +324,7 @@ async function drawResultCard(code, format = 'square') {
 
   // Korean name
   ctx.fillStyle = meta.accent;
-  ctx.font = `600 ${layout.krFont}px "Noto Serif KR", serif`;
+  ctx.font = `700 ${layout.krFont}px "Gowun Batang", serif`;
   ctx.fillText(item.nameKr, W / 2, bottle.bottomY + layout.krGap);
 
   // Description (wrapped, centered)
@@ -417,7 +417,7 @@ async function drawCompatCard(codeA, codeB) {
 
   // Headline
   ctx.fillStyle = a.group === b.group ? gmA.accent : '#f6ece1';
-  ctx.font = '600 52px "Playfair Display", serif';
+  ctx.font = '700 52px "Gowun Batang", serif';
   ctx.fillText(pair.title, W / 2, 384);
 
   // Blurb
