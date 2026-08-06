@@ -706,6 +706,14 @@ async function shareCompatImage(codeA, codeB) {
   }
 }
 
+// ===== Apply ("신청") Modal =====
+
+function showApplyForm() {
+  document.getElementById('applyStepForm').hidden = false;
+  document.getElementById('applyStepDone').hidden = true;
+  document.getElementById('applyError').hidden = true;
+}
+
 let currentCode = null;
 let currentFormat = 'square';
 let compatCodeA = null;
@@ -734,10 +742,18 @@ document.addEventListener('DOMContentLoaded', () => {
   compatOverlay.addEventListener('click', (e) => {
     if (e.target === compatOverlay) closeModal('compatModal');
   });
+
+  const applyOverlay = document.getElementById('applyModal');
+  document.getElementById('applyModalClose').addEventListener('click', () => closeModal('applyModal'));
+  applyOverlay.addEventListener('click', (e) => {
+    if (e.target === applyOverlay) closeModal('applyModal');
+  });
+
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (overlay.classList.contains('is-open')) closeModal();
     if (compatOverlay.classList.contains('is-open')) closeModal('compatModal');
+    if (applyOverlay.classList.contains('is-open')) closeModal('applyModal');
   });
 
   // Picker grid → show result
@@ -828,6 +844,66 @@ document.addEventListener('DOMContentLoaded', () => {
       if (compatCodeA && compatCodeB) shareCompatImage(compatCodeA, compatCodeB);
     });
   }
+
+  // Apply: hero-level entry point
+  document.getElementById('applyBtn').addEventListener('click', () => {
+    openModal('applyModal');
+    showApplyForm();
+  });
+
+  document.getElementById('applyDoneBtn').addEventListener('click', () => closeModal('applyModal'));
+
+  const applyForm = document.getElementById('applyForm');
+  const applyErrorEl = document.getElementById('applyError');
+  const applySubmitBtn = document.getElementById('applySubmitBtn');
+
+  applyForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    applyErrorEl.hidden = true;
+
+    if (!applyForm.reportValidity()) return;
+
+    const name = document.getElementById('applyName').value.trim();
+    const age = document.getElementById('applyAge').value;
+    const phone = document.getElementById('applyPhone').value.trim();
+    const region = document.getElementById('applyRegion').value;
+    const consent = document.getElementById('applyConsent').checked;
+    const website = document.getElementById('applyWebsite').value;
+
+    if (!/^010-\d{4}-\d{4}$/.test(phone)) {
+      applyErrorEl.textContent = '전화번호 형식을 확인해주세요. (010-0000-0000)';
+      applyErrorEl.hidden = false;
+      return;
+    }
+    if (!consent) {
+      applyErrorEl.textContent = '개인정보 수집·이용에 동의해주세요.';
+      applyErrorEl.hidden = false;
+      return;
+    }
+
+    applySubmitBtn.disabled = true;
+    applySubmitBtn.textContent = '신청 중...';
+
+    try {
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, age: Number(age), phone, region, consent, website }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || '잠시 후 다시 시도해주세요.');
+
+      document.getElementById('applyStepForm').hidden = true;
+      document.getElementById('applyStepDone').hidden = false;
+      applyForm.reset();
+    } catch (err) {
+      applyErrorEl.textContent = err.message || '잠시 후 다시 시도해주세요.';
+      applyErrorEl.hidden = false;
+    } finally {
+      applySubmitBtn.disabled = false;
+      applySubmitBtn.textContent = '신청하기';
+    }
+  });
 
   // Filter buttons
   const filterBar = document.getElementById('filterBar');
