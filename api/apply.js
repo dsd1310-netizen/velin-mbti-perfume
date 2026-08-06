@@ -1,9 +1,11 @@
 // Appends VELIN pop-up visit applications to a Google Sheet.
 // Auth is done by hand-signing a JWT with the service account's private key
 // (RSA-SHA256) and exchanging it for an access token — this avoids pulling in
-// the full `googleapis` package for a single append call. Requires three env
-// vars set in the Vercel project: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-// GOOGLE_PRIVATE_KEY, GOOGLE_SHEET_ID.
+// the full `googleapis` package for a single append call. Requires two env
+// vars set in the Vercel project: GOOGLE_SERVICE_ACCOUNT_JSON (the entire
+// downloaded service-account key file, pasted as-is — JSON.parse resolves the
+// escaped newlines inside `private_key` on its own, so there's no manual
+// `\n`-replacement step to get wrong) and GOOGLE_SHEET_ID.
 
 const crypto = require('crypto');
 
@@ -21,10 +23,18 @@ function base64url(input) {
     .replace(/=+$/, '');
 }
 
+function loadServiceAccount() {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (!raw) throw new Error('missing GOOGLE_SERVICE_ACCOUNT_JSON');
+  const parsed = JSON.parse(raw);
+  if (!parsed.client_email || !parsed.private_key) {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is missing client_email/private_key');
+  }
+  return parsed;
+}
+
 async function getAccessToken() {
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
-  if (!email || !privateKey) throw new Error('missing google service account credentials');
+  const { client_email: email, private_key: privateKey } = loadServiceAccount();
 
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: 'RS256', typ: 'JWT' };
