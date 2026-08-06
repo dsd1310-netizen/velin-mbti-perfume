@@ -688,6 +688,7 @@ let compatCodeB = null;
 document.addEventListener('DOMContentLoaded', () => {
   renderCards();
   renderPickerGrid();
+  renderCompatPickers();
 
   // Hero "내 향수 찾기" button opens picker
   document.getElementById('findScentBtn').addEventListener('click', () => {
@@ -700,6 +701,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('modalClose').addEventListener('click', closeModal);
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeModal();
+  });
+
+  const compatOverlay = document.getElementById('compatModal');
+  document.getElementById('compatModalClose').addEventListener('click', () => closeModal('compatModal'));
+  compatOverlay.addEventListener('click', (e) => {
+    if (e.target === compatOverlay) closeModal('compatModal');
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
@@ -749,6 +756,52 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.getElementById('backToPickerBtn').addEventListener('click', showPickerStep);
+
+  // Compat: hero-level entry point
+  document.getElementById('findMatchBtn').addEventListener('click', () => {
+    openModal('compatModal');
+    showCompatPickerStep();
+  });
+
+  // Compat: each grid keeps its own single selection
+  function updateCompatGoBtn() {
+    document.getElementById('compatGoBtn').disabled = !(compatCodeA && compatCodeB);
+  }
+  document.getElementById('compatPickerA').addEventListener('click', (e) => {
+    const btn = e.target.closest('.picker-btn');
+    if (!btn) return;
+    compatCodeA = btn.dataset.code;
+    document.getElementById('compatPickerA').querySelectorAll('.picker-btn').forEach(b => b.classList.toggle('is-active', b === btn));
+    updateCompatGoBtn();
+  });
+  document.getElementById('compatPickerB').addEventListener('click', (e) => {
+    const btn = e.target.closest('.picker-btn');
+    if (!btn) return;
+    compatCodeB = btn.dataset.code;
+    document.getElementById('compatPickerB').querySelectorAll('.picker-btn').forEach(b => b.classList.toggle('is-active', b === btn));
+    updateCompatGoBtn();
+  });
+
+  document.getElementById('compatGoBtn').addEventListener('click', async () => {
+    if (!compatCodeA || !compatCodeB) return;
+    document.getElementById('compatStepPicker').hidden = true;
+    document.getElementById('compatStepResult').hidden = false;
+    await drawCompatCard(compatCodeA, compatCodeB);
+  });
+
+  document.getElementById('compatBackBtn').addEventListener('click', showCompatPickerStep);
+
+  document.getElementById('compatSaveBtn').addEventListener('click', () => {
+    if (compatCodeA && compatCodeB) downloadCompatImage(compatCodeA, compatCodeB);
+  });
+
+  const compatShareBtn = document.getElementById('compatShareBtn');
+  if (navigator.share) {
+    compatShareBtn.hidden = false;
+    compatShareBtn.addEventListener('click', () => {
+      if (compatCodeA && compatCodeB) shareCompatImage(compatCodeA, compatCodeB);
+    });
+  }
 
   // Filter buttons
   const filterBar = document.getElementById('filterBar');
