@@ -67,6 +67,22 @@ const GROUP_META = {
 
 const DATA_BY_CODE = Object.fromEntries(MBTI_DATA.map(item => [item.code, item]));
 
+// 기질군 조합(순서 무관) 10가지 — 16×16 = 120가지 궁합 결과의 헤드라인/문구를 여기서 전부 커버한다.
+const PAIR_COPY = {
+  'NT-NT': { title: '전략가들의 밀도', blurb: '말보다 논리로 통하는 두 사람. 정제된 우디와 앰버가 서로의 결을 짙게 덧그린다.' },
+  'NF-NT': { title: '이성과 다정함의 접점', blurb: '냉철함과 다정함이 서로를 알아보는 관계. 시더우드의 단단함에 화이트 플로럴이 스며든다.' },
+  'NT-SJ': { title: '설계와 실행의 결', blurb: '방향을 정하는 사람과 그 결을 지키는 사람. 흔들림 없는 우디 앰버가 신뢰를 쌓는다.' },
+  'NT-SP': { title: '질서와 즉흥의 스파크', blurb: '치밀한 계획과 예측 불가능한 순간이 부딪히는 사이. 시트러스의 스파크가 묵직한 우디를 깨운다.' },
+  'NF-NF': { title: '다정함의 배가', blurb: '말하지 않아도 서로를 헤아리는 두 사람. 부드러운 플로럴이 겹겹이 쌓여 오래 남는다.' },
+  'NF-SJ': { title: '온기와 신뢰의 결', blurb: '곁에 있는 것만으로 안심이 되는 관계. 따뜻한 바닐라와 앰버가 편안하게 감싼다.' },
+  'NF-SP': { title: '감성과 자유의 리듬', blurb: '즉흥적인 에너지에 다정함이 스며드는 사이. 발랄한 과일향에 부드러운 머스크가 생기를 더한다.' },
+  'SJ-SJ': { title: '변하지 않는 약속', blurb: '한번 맺은 신뢰를 지키는 두 사람. 단정한 우디와 바닐라가 두 배로 단단해진다.' },
+  'SJ-SP': { title: '안정과 모험의 균형', blurb: '지키는 사람과 뛰어드는 사람, 팽팽하지만 서로를 완성하는 사이. 안정적인 우디에 시트러스가 긴장감을 더한다.' },
+  'SP-SP': { title: '즉흥의 폭발', blurb: '망설임 없이 서로에게 뛰어드는 두 사람. 짜릿한 시트러스와 베리가 강렬한 에너지로 터진다.' },
+};
+function pairKey(gA, gB) { return [gA, gB].sort().join('-'); }
+function firstWord(str) { return str.split(',')[0].trim(); }
+
 function renderCards(filter = 'all') {
   const grid = document.getElementById('cardGrid');
   grid.innerHTML = MBTI_DATA.map(item => `
@@ -101,13 +117,13 @@ function renderPickerGrid() {
   `).join('');
 }
 
-function openModal() {
-  document.getElementById('scentModal').classList.add('is-open');
+function openModal(id = 'scentModal') {
+  document.getElementById(id).classList.add('is-open');
   document.body.style.overflow = 'hidden';
 }
 
-function closeModal() {
-  document.getElementById('scentModal').classList.remove('is-open');
+function closeModal(id = 'scentModal') {
+  document.getElementById(id).classList.remove('is-open');
   document.body.style.overflow = '';
 }
 
@@ -120,6 +136,21 @@ async function showResultStep(code) {
   document.getElementById('stepPicker').hidden = true;
   document.getElementById('stepResult').hidden = false;
   await drawResultCard(code, currentFormat);
+}
+
+// ===== Compatibility ("궁합") Modal =====
+
+function renderCompatPickers() {
+  const html = MBTI_DATA.map(item => `
+    <button type="button" class="picker-btn" data-code="${item.code}">${item.code}</button>
+  `).join('');
+  document.getElementById('compatPickerA').innerHTML = html;
+  document.getElementById('compatPickerB').innerHTML = html;
+}
+
+function showCompatPickerStep() {
+  document.getElementById('compatStepPicker').hidden = false;
+  document.getElementById('compatStepResult').hidden = true;
 }
 
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -261,6 +292,108 @@ async function drawResultCard(code, format = 'square') {
 
   // Footer / watermark
   ctx.textAlign = 'center';
+  ctx.fillStyle = '#f6ece1';
+  ctx.font = `700 ${layout.footerNameFont}px "Playfair Display", serif`;
+  ctx.fillText('VELIN', W / 2, H - layout.footerNameOffset);
+  ctx.fillStyle = hexToRgba('#f6ece1', 0.6);
+  ctx.font = `400 ${layout.footerHandleFont}px "Noto Sans KR", sans-serif`;
+  ctx.fillText('@_velin_office', W / 2, H - layout.footerHandleOffset);
+}
+
+async function drawCompatCard(codeA, codeB) {
+  const a = DATA_BY_CODE[codeA], b = DATA_BY_CODE[codeB];
+  const gmA = GROUP_META[a.group], gmB = GROUP_META[b.group];
+  const pair = PAIR_COPY[pairKey(a.group, b.group)];
+  const layout = LAYOUTS.square;
+  const canvas = document.getElementById('compatCanvas');
+  canvas.width = 1080;
+  canvas.height = 1080;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (e) {}
+  }
+
+  // Background — blend of both groups' palettes
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, gmA.bg1);
+  bg.addColorStop(0.4, gmA.bg2);
+  bg.addColorStop(0.6, gmB.bg2);
+  bg.addColorStop(1, gmB.bg1);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  const glow = ctx.createRadialGradient(W * 0.5, H * 0.06, 40, W * 0.5, H * 0.06, W * 0.7);
+  glow.addColorStop(0, hexToRgba(gmA.accent, 0.22));
+  glow.addColorStop(1, hexToRgba(gmA.accent, 0));
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  // Orbit ellipse decoration
+  ctx.save();
+  ctx.translate(W * 0.5, H * 0.42);
+  ctx.strokeStyle = hexToRgba('#f6ece1', 0.18);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, W * 0.64, H * 0.24, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  drawSpark(ctx, W * 0.86, H * 0.14, 22, gmA.accent);
+  drawSpark(ctx, W * 0.13, H * 0.62, 14, '#f6ece1');
+
+  ctx.textAlign = 'center';
+
+  // Eyebrow
+  ctx.fillStyle = gmA.accent;
+  ctx.font = '600 24px "Noto Sans KR", sans-serif';
+  ctx.letterSpacing = '4px';
+  ctx.fillText('YOUR VELIN DUO', W / 2, 130);
+  ctx.letterSpacing = '0px';
+
+  // Codes
+  ctx.fillStyle = '#f6ece1';
+  ctx.font = '700 58px "Playfair Display", serif';
+  ctx.fillText(`${a.code}  ×  ${b.code}`, W / 2, 208);
+
+  // Group label
+  ctx.fillStyle = hexToRgba('#f6ece1', 0.62);
+  ctx.font = '500 22px "Noto Sans KR", sans-serif';
+  const groupLabel = a.group === b.group ? `${gmA.label} · ${gmA.label}` : `${gmA.label} × ${gmB.label}`;
+  ctx.fillText(groupLabel, W / 2, 246);
+
+  // Headline
+  ctx.fillStyle = a.group === b.group ? gmA.accent : '#f6ece1';
+  ctx.font = '600 52px "Playfair Display", serif';
+  ctx.fillText(pair.title, W / 2, 384);
+
+  // Blurb
+  ctx.fillStyle = hexToRgba('#f6ece1', 0.86);
+  ctx.font = '400 27px "Noto Sans KR", sans-serif';
+  const blurbEndY = drawWrappedCentered(ctx, pair.blurb, W / 2, 444, W * 0.68, 38);
+
+  // Duo name
+  const duoY = blurbEndY + 56;
+  ctx.fillStyle = '#f6ece1';
+  ctx.font = '600 34px "Playfair Display", serif';
+  ctx.fillText(`${a.name} × ${b.name}`, W / 2, duoY);
+
+  // Notes pyramid — blended first note from each person per layer
+  const notesY = duoY + 96;
+  ctx.strokeStyle = hexToRgba('#f6ece1', 0.18);
+  ctx.beginPath();
+  ctx.moveTo(W * 0.1, notesY - layout.notesTopGap);
+  ctx.lineTo(W * 0.9, notesY - layout.notesTopGap);
+  ctx.stroke();
+  const blended = {
+    top: `${firstWord(a.top)} · ${firstWord(b.top)}`,
+    mid: `${firstWord(a.mid)} · ${firstWord(b.mid)}`,
+    base: `${firstWord(a.base)} · ${firstWord(b.base)}`,
+  };
+  drawNotesPyramid(ctx, W, notesY, gmA, blended, layout);
+
+  // Footer / watermark
   ctx.fillStyle = '#f6ece1';
   ctx.font = `700 ${layout.footerNameFont}px "Playfair Display", serif`;
   ctx.fillText('VELIN', W / 2, H - layout.footerNameOffset);
@@ -470,8 +603,45 @@ async function shareResultImage(code, format) {
   }
 }
 
+function downloadCompatImage(codeA, codeB) {
+  const canvas = document.getElementById('compatCanvas');
+  const link = document.createElement('a');
+  link.download = `VELIN_DUO_${codeA}_${codeB}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+async function shareCompatImage(codeA, codeB) {
+  const a = DATA_BY_CODE[codeA], b = DATA_BY_CODE[codeB];
+  const canvas = document.getElementById('compatCanvas');
+  const blob = await canvasToBlob(canvas);
+  if (!blob) return;
+  const file = new File([blob], `VELIN_DUO_${codeA}_${codeB}.png`, { type: 'image/png' });
+  const shareData = {
+    files: [file],
+    title: `VELIN | ${a.code} × ${b.code} 궁합 향`,
+    text: `우리 궁합 향은 ${a.name} × ${b.name}! VELIN에서 당신의 궁합도 확인해보세요.`,
+  };
+
+  if (navigator.canShare && navigator.canShare(shareData)) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error(err);
+    }
+  } else if (navigator.share) {
+    try {
+      await navigator.share({ title: shareData.title, text: shareData.text, url: location.href });
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error(err);
+    }
+  }
+}
+
 let currentCode = null;
 let currentFormat = 'square';
+let compatCodeA = null;
+let compatCodeB = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   renderCards();
@@ -490,7 +660,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === overlay) closeModal();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeModal();
+    if (e.key !== 'Escape') return;
+    if (overlay.classList.contains('is-open')) closeModal();
+    if (compatOverlay.classList.contains('is-open')) closeModal('compatModal');
   });
 
   // Picker grid → show result
