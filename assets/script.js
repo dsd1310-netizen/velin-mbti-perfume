@@ -324,7 +324,7 @@ async function drawResultCard(code, format = 'square') {
 
   // Korean name
   ctx.fillStyle = meta.accent;
-  ctx.font = `700 ${layout.krFont}px "Gowun Batang", serif`;
+  ctx.font = `400 ${layout.krFont}px "Jua", sans-serif`;
   ctx.fillText(item.nameKr, W / 2, bottle.bottomY + layout.krGap);
 
   // Description (wrapped, centered)
@@ -417,7 +417,7 @@ async function drawCompatCard(codeA, codeB) {
 
   // Headline
   ctx.fillStyle = a.group === b.group ? gmA.accent : '#f6ece1';
-  ctx.font = '700 52px "Gowun Batang", serif';
+  ctx.font = '400 52px "Jua", sans-serif';
   ctx.fillText(pair.title, W / 2, 384);
 
   // Blurb
@@ -851,6 +851,9 @@ document.addEventListener('DOMContentLoaded', () => {
     showApplyForm();
   });
 
+  // Can't ask for a pickup date before today.
+  document.getElementById('applyDate').min = new Date().toISOString().slice(0, 10);
+
   document.getElementById('applyDoneBtn').addEventListener('click', () => closeModal('applyModal'));
 
   const applyForm = document.getElementById('applyForm');
@@ -866,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('applyName').value.trim();
     const age = document.getElementById('applyAge').value;
     const phone = document.getElementById('applyPhone').value.trim();
-    const region = document.getElementById('applyRegion').value;
+    const pickupDate = document.getElementById('applyDate').value;
     const consent = document.getElementById('applyConsent').checked;
     const website = document.getElementById('applyWebsite').value;
 
@@ -888,7 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, age: Number(age), phone, region, consent, website }),
+        body: JSON.stringify({ name, age: Number(age), phone, pickupDate, consent, website }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.error || '잠시 후 다시 시도해주세요.');

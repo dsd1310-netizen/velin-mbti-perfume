@@ -23,7 +23,7 @@
 <meta name="twitter:image" content="https://velin-mbti-perfume.vercel.app/assets/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Jua&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -93,7 +93,7 @@
         <ul class="about-stats">
           <li><strong>16</strong><span>MBTI 시그니처 향</span></li>
           <li><strong>3</strong><span>겹의 노트 구조</span></li>
-          <li><strong>1~2주</strong><span>저온 숙성 기간</span></li>
+          <li><strong>1~2<span class="unit">주</span></strong><span>저온 숙성 기간</span></li>
           <li><strong>1</strong><span>당신만의 향</span></li>
         </ul>
       </div>
@@ -140,27 +140,27 @@
         <p class="lead center">향수는 뿌리는 즉시가 아니라 시간이 지나며 완성됩니다. 향이 가장 솔직해지는 순간까지, VELIN이 권하는 다섯 번의 시향 타이밍입니다.</p>
         <div class="journey-grid">
           <div class="journey-step">
-            <span class="step-index">0분</span>
+            <span class="step-index">0<span class="unit">분</span></span>
             <h4>분출</h4>
             <p>알코올과 함께 가장 가벼운 분자가 쏟아지는 순간. 아직 전체를 판단하기엔 이릅니다.</p>
           </div>
           <div class="journey-step">
-            <span class="step-index">1분</span>
+            <span class="step-index">1<span class="unit">분</span></span>
             <h4>안정</h4>
             <p>알코올이 옅어지며 향의 대략적인 인상이 처음으로 드러납니다.</p>
           </div>
           <div class="journey-step">
-            <span class="step-index">10분</span>
+            <span class="step-index">10<span class="unit">분</span></span>
             <h4>골든 타임</h4>
             <p>미들 노트가 산소와 만나 본색을 드러내는, 향이 가장 솔직해지는 순간.</p>
           </div>
           <div class="journey-step">
-            <span class="step-index">30분</span>
+            <span class="step-index">30<span class="unit">분</span></span>
             <h4>하모니</h4>
             <p>모든 노트가 유기적으로 섞여, 비로소 완성된 구조를 이룹니다.</p>
           </div>
           <div class="journey-step">
-            <span class="step-index">3시간+</span>
+            <span class="step-index">3<span class="unit">시간+</span></span>
             <h4>잔향</h4>
             <p>베이스 노트만 남아, 그 사람만의 여운으로 완성됩니다.</p>
           </div>
@@ -368,21 +368,13 @@
           <input type="tel" id="applyPhone" name="phone" placeholder="010-0000-0000" pattern="010-\d{4}-\d{4}" required autocomplete="tel">
         </div>
         <div class="field">
-          <label for="applyRegion">지역</label>
-          <select id="applyRegion" name="region" required>
-            <option value="" disabled selected>거주 구를 선택해주세요</option>
-            <option value="동구">동구</option>
-            <option value="중구">중구</option>
-            <option value="서구">서구</option>
-            <option value="유성구">유성구</option>
-            <option value="대덕구">대덕구</option>
-            <option value="대전 외 지역">대전 외 지역</option>
-          </select>
+          <label for="applyDate">수령 가능 날짜</label>
+          <input type="date" id="applyDate" name="pickupDate" required>
         </div>
 
         <div class="field-checkbox">
           <input type="checkbox" id="applyConsent" name="consent" required>
-          <label for="applyConsent">[필수] 방문 신청 및 안내를 위한 개인정보(이름, 나이, 전화번호, 지역) 수집·이용에 동의합니다. 수집한 정보는 팝업스토어 안내 목적 외에는 사용되지 않으며, 행사 종료 후 파기됩니다.</label>
+          <label for="applyConsent">[필수] 방문 신청 및 안내를 위한 개인정보(이름, 나이, 전화번호, 수령 가능 날짜) 수집·이용에 동의합니다. 수집한 정보는 팝업스토어 안내 목적 외에는 사용되지 않으며, 행사 종료 후 파기됩니다.</label>
         </div>
 
         <input type="text" name="website" id="applyWebsite" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">

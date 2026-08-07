@@ -12,8 +12,8 @@ const crypto = require('crypto');
 const SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SHEET_RANGE = '신청내역!A:F';
-const REGIONS = ['동구', '중구', '서구', '유성구', '대덕구', '대전 외 지역'];
 const PHONE_RE = /^010-\d{4}-\d{4}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function base64url(input) {
   return Buffer.from(input)
@@ -83,7 +83,7 @@ module.exports = async (req, res) => {
   }
   body = body || {};
 
-  const { name, age, phone, region, consent, website } = body;
+  const { name, age, phone, pickupDate, consent, website } = body;
 
   // Honeypot: bots that fill hidden fields get a fake success, no sheet write.
   if (website) {
@@ -106,8 +106,9 @@ module.exports = async (req, res) => {
     res.status(400).json({ ok: false, error: '전화번호 형식을 확인해주세요. (010-0000-0000)' });
     return;
   }
-  if (!REGIONS.includes(region)) {
-    res.status(400).json({ ok: false, error: '지역을 선택해주세요.' });
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (typeof pickupDate !== 'string' || !DATE_RE.test(pickupDate) || pickupDate < todayStr) {
+    res.status(400).json({ ok: false, error: '수령 가능 날짜를 확인해주세요.' });
     return;
   }
   if (consent !== true) {
@@ -134,7 +135,7 @@ module.exports = async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        values: [[timestamp, trimmedName, ageNum, phone, region, '동의']],
+        values: [[timestamp, trimmedName, ageNum, phone, pickupDate, '동의']],
       }),
     });
 
