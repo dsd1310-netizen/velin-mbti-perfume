@@ -1,5 +1,12 @@
 /* ===== VELIN — MBTI Perfume Brand Site ===== */
 
+@font-face {
+  font-family: 'PureJeonnam';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/PureunJeonnam.woff') format('woff');
+  font-weight: normal;
+  font-display: swap;
+}
+
 :root {
   --forest-900: #1b2419;
   --forest-800: #263426;
@@ -15,6 +22,18 @@
   --serif: 'Jua', sans-serif;
   --display: 'Playfair Display', var(--serif);
   --sans: 'Noto Sans KR', sans-serif;
+}
+
+/* Swapped in on a handful of headlines only (hero, notes intro, the two
+   scent-journey/emotion sub-headings, compat, closing) — logo, MBTI codes,
+   and card names keep the Playfair/Jua pairing. */
+.hero-content .display-xl,
+.notes-intro .display-lg,
+.sub-heading,
+.compat .display-lg,
+.closing .display-xl {
+  font-family: 'PureJeonnam', var(--serif);
+  font-weight: 400;
 }
 
 * { box-sizing: border-box; }
