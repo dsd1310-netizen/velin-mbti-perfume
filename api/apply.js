@@ -127,7 +127,9 @@ module.exports = async (req, res) => {
 
   try {
     const accessToken = await getAccessToken();
-    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(SHEET_RANGE)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    // RAW (not USER_ENTERED) so Sheets stores the date/time strings as literal
+    // text instead of parsing them into date/time serial numbers.
+    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(SHEET_RANGE)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
     const timestamp = new Date().toISOString();
 
     const sheetRes = await fetch(appendUrl, {
