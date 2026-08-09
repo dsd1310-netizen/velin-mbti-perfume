@@ -248,31 +248,17 @@ p { margin: 0; }
 }
 .about-visual { display: flex; flex-direction: column; align-items: center; gap: 20px; }
 .bottle-card {
-  width: 100%; max-width: 320px; aspect-ratio: 4/5;
+  width: 100%; max-width: 320px; aspect-ratio: 1/1;
   border-radius: 28px;
   background: linear-gradient(150deg, #3a4a37 0%, #232f21 70%);
-  display: flex; align-items: center; justify-content: center;
   box-shadow: var(--shadow);
   position: relative; overflow: hidden;
 }
 .bottle-card::before {
-  content: ''; position: absolute; inset: 0;
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: radial-gradient(circle at 25% 15%, rgba(255,255,255,0.18), transparent 45%);
 }
-.bottle { display: flex; flex-direction: column; align-items: center; }
-.bottle-cap { width: 34px; height: 20px; background: #17201a; border-radius: 4px 4px 2px 2px; }
-.bottle-neck { width: 16px; height: 22px; background: rgba(180,205,175,0.55); }
-.bottle-body {
-  width: 120px; height: 160px; border-radius: 10px;
-  background: linear-gradient(160deg, rgba(180,205,175,0.55), rgba(120,145,110,0.35));
-  border: 1px solid rgba(246,236,217,0.35);
-  display: flex; align-items: center; justify-content: center; text-align: center;
-  box-shadow: inset 0 0 30px rgba(0,0,0,0.15);
-}
-.bottle-label {
-  font-family: var(--display); color: var(--cream); font-size: 15px; letter-spacing: 0.08em;
-}
-.bottle-label small { font-family: var(--sans); font-size: 8px; letter-spacing: 0.15em; opacity: 0.8; }
+.logo-image { width: 100%; height: 100%; object-fit: cover; display: block; }
 .about-tag {
   font-size: 13px; letter-spacing: 0.1em; color: var(--forest-700);
   border: 1px solid var(--line); border-radius: 999px; padding: 8px 20px;
