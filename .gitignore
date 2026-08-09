@@ -1,4 +1,5 @@
 *.pdf
+향수사진/
 .vercel
 .DS_Store
 Thumbs.db
