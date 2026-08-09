@@ -867,17 +867,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!applyForm.reportValidity()) return;
 
     const name = document.getElementById('applyName').value.trim();
-    const phone = document.getElementById('applyPhone').value.trim();
+    const phoneDigits = document.getElementById('applyPhone').value.replace(/\D/g, '');
     const pickupDate = document.getElementById('applyDate').value;
     const pickupTime = document.getElementById('applyTime').value;
     const consent = document.getElementById('applyConsent').checked;
     const website = document.getElementById('applyWebsite').value;
 
-    if (!/^010-\d{4}-\d{4}$/.test(phone)) {
-      applyErrorEl.textContent = '전화번호 형식을 확인해주세요. (010-0000-0000)';
+    if (!/^010\d{8}$/.test(phoneDigits)) {
+      applyErrorEl.textContent = '전화번호를 확인해주세요. (예: 010-0000-0000)';
       applyErrorEl.hidden = false;
       return;
     }
+    const phone = `${phoneDigits.slice(0, 3)}-${phoneDigits.slice(3, 7)}-${phoneDigits.slice(7, 11)}`;
     if (!consent) {
       applyErrorEl.textContent = '개인정보 수집·이용에 동의해주세요.';
       applyErrorEl.hidden = false;

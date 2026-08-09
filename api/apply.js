@@ -12,7 +12,7 @@ const crypto = require('crypto');
 const SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SHEET_RANGE = '신청내역!A:F';
-const PHONE_RE = /^010-\d{4}-\d{4}$/;
+const PHONE_RE = /^010\d{8}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -98,10 +98,12 @@ module.exports = async (req, res) => {
     res.status(400).json({ ok: false, error: '이름을 확인해주세요.' });
     return;
   }
-  if (typeof phone !== 'string' || !PHONE_RE.test(phone)) {
-    res.status(400).json({ ok: false, error: '전화번호 형식을 확인해주세요. (010-0000-0000)' });
+  const phoneDigits = typeof phone === 'string' ? phone.replace(/\D/g, '') : '';
+  if (!PHONE_RE.test(phoneDigits)) {
+    res.status(400).json({ ok: false, error: '전화번호를 확인해주세요. (예: 010-0000-0000)' });
     return;
   }
+  const formattedPhone = `${phoneDigits.slice(0, 3)}-${phoneDigits.slice(3, 7)}-${phoneDigits.slice(7, 11)}`;
   const todayStr = new Date().toISOString().slice(0, 10);
   if (typeof pickupDate !== 'string' || !DATE_RE.test(pickupDate) || pickupDate < todayStr) {
     res.status(400).json({ ok: false, error: '수령 가능 날짜를 확인해주세요.' });
@@ -135,7 +137,7 @@ module.exports = async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        values: [[timestamp, trimmedName, phone, pickupDate, pickupTime, '동의']],
+        values: [[timestamp, trimmedName, formattedPhone, pickupDate, pickupTime, '동의']],
       }),
     });
 
