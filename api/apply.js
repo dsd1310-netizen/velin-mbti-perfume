@@ -14,6 +14,7 @@ const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SHEET_RANGE = '신청내역!A:F';
 const PHONE_RE = /^010-\d{4}-\d{4}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 function base64url(input) {
   return Buffer.from(input)
@@ -83,7 +84,7 @@ module.exports = async (req, res) => {
   }
   body = body || {};
 
-  const { name, age, phone, pickupDate, consent, website } = body;
+  const { name, phone, pickupDate, pickupTime, consent, website } = body;
 
   // Honeypot: bots that fill hidden fields get a fake success, no sheet write.
   if (website) {
@@ -92,14 +93,9 @@ module.exports = async (req, res) => {
   }
 
   const trimmedName = typeof name === 'string' ? name.trim() : '';
-  const ageNum = Number(age);
 
   if (!trimmedName || trimmedName.length > 40) {
     res.status(400).json({ ok: false, error: '이름을 확인해주세요.' });
-    return;
-  }
-  if (!Number.isInteger(ageNum) || ageNum < 1 || ageNum > 120) {
-    res.status(400).json({ ok: false, error: '나이를 확인해주세요.' });
     return;
   }
   if (typeof phone !== 'string' || !PHONE_RE.test(phone)) {
@@ -109,6 +105,10 @@ module.exports = async (req, res) => {
   const todayStr = new Date().toISOString().slice(0, 10);
   if (typeof pickupDate !== 'string' || !DATE_RE.test(pickupDate) || pickupDate < todayStr) {
     res.status(400).json({ ok: false, error: '수령 가능 날짜를 확인해주세요.' });
+    return;
+  }
+  if (typeof pickupTime !== 'string' || !TIME_RE.test(pickupTime)) {
+    res.status(400).json({ ok: false, error: '수령 가능 시간을 확인해주세요.' });
     return;
   }
   if (consent !== true) {
@@ -135,7 +135,7 @@ module.exports = async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        values: [[timestamp, trimmedName, ageNum, phone, pickupDate, '동의']],
+        values: [[timestamp, trimmedName, phone, pickupDate, pickupTime, '동의']],
       }),
     });
 

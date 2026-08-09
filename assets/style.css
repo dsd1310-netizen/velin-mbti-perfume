@@ -383,10 +383,11 @@ p { margin: 0; }
 }
 .mbti-card:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
 .mbti-card .code {
-  font-family: var(--display); font-size: 15px; letter-spacing: 0.16em; color: var(--card-accent);
+  font-family: var(--display); font-size: 32px; font-weight: 700; letter-spacing: 0.05em; color: var(--card-accent);
 }
 .mbti-card .name {
-  font-family: var(--display); font-size: 26px; margin: 10px 0 4px; line-height: 1.2;
+  font-family: var(--display); font-size: 16px; letter-spacing: 0.04em; text-transform: uppercase;
+  margin: 10px 0 4px; line-height: 1.3; color: rgba(246,236,217,0.92);
 }
 .mbti-card .name-kr { font-size: 13px; color: rgba(246,236,217,0.6); margin-bottom: 14px; }
 .mbti-card .desc {

@@ -360,10 +360,6 @@
           <input type="text" id="applyName" name="name" maxlength="40" required autocomplete="name">
         </div>
         <div class="field">
-          <label for="applyAge">나이</label>
-          <input type="number" id="applyAge" name="age" min="1" max="120" required inputmode="numeric">
-        </div>
-        <div class="field">
           <label for="applyPhone">전화번호</label>
           <input type="tel" id="applyPhone" name="phone" placeholder="010-0000-0000" pattern="010-\d{4}-\d{4}" required autocomplete="tel">
         </div>
@@ -371,10 +367,14 @@
           <label for="applyDate">수령 가능 날짜</label>
           <input type="date" id="applyDate" name="pickupDate" required>
         </div>
+        <div class="field">
+          <label for="applyTime">수령 가능 시간</label>
+          <input type="time" id="applyTime" name="pickupTime" required>
+        </div>
 
         <div class="field-checkbox">
           <input type="checkbox" id="applyConsent" name="consent" required>
-          <label for="applyConsent">[필수] 방문 신청 및 안내를 위한 개인정보(이름, 나이, 전화번호, 수령 가능 날짜) 수집·이용에 동의합니다. 수집한 정보는 이벤트 안내 목적 외에는 사용되지 않으며, 행사 종료 후 파기됩니다.</label>
+          <label for="applyConsent">[필수] 방문 신청 및 안내를 위한 개인정보(이름, 전화번호, 수령 가능 날짜·시간) 수집·이용에 동의합니다. 수집한 정보는 이벤트 안내 목적 외에는 사용되지 않으며, 행사 종료 후 파기됩니다.</label>
         </div>
 
         <input type="text" name="website" id="applyWebsite" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">

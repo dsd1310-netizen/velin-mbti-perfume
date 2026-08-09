@@ -867,9 +867,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!applyForm.reportValidity()) return;
 
     const name = document.getElementById('applyName').value.trim();
-    const age = document.getElementById('applyAge').value;
     const phone = document.getElementById('applyPhone').value.trim();
     const pickupDate = document.getElementById('applyDate').value;
+    const pickupTime = document.getElementById('applyTime').value;
     const consent = document.getElementById('applyConsent').checked;
     const website = document.getElementById('applyWebsite').value;
 
@@ -891,7 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, age: Number(age), phone, pickupDate, consent, website }),
+        body: JSON.stringify({ name, phone, pickupDate, pickupTime, consent, website }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.error || '잠시 후 다시 시도해주세요.');
