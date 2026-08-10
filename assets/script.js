@@ -922,11 +922,34 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mobile nav toggle
   const navToggle = document.getElementById('navToggle');
   const mainNav = document.getElementById('mainNav');
+  const navOverlay = document.getElementById('navOverlay');
+
+  function openNav() {
+    mainNav.classList.add('is-open');
+    navToggle.classList.add('is-open');
+    navOverlay.classList.add('is-open');
+    navToggle.setAttribute('aria-expanded', 'true');
+    navToggle.setAttribute('aria-label', '메뉴 닫기');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeNav() {
+    mainNav.classList.remove('is-open');
+    navToggle.classList.remove('is-open');
+    navOverlay.classList.remove('is-open');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-label', '메뉴 열기');
+    document.body.style.overflow = '';
+  }
+
   navToggle.addEventListener('click', () => {
-    mainNav.classList.toggle('is-open');
+    if (mainNav.classList.contains('is-open')) closeNav(); else openNav();
   });
+  navOverlay.addEventListener('click', closeNav);
   mainNav.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => mainNav.classList.remove('is-open'));
+    a.addEventListener('click', closeNav);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mainNav.classList.contains('is-open')) closeNav();
   });
 
   // Header scroll state
