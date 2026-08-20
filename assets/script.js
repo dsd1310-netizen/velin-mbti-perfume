@@ -200,29 +200,27 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 const LAYOUTS = {
   square: {
     H: 1080,
-    eyebrowY: 96, eyebrowFont: 24,
-    codeY: 160, codeFont: 54,
-    groupY: 196, groupFont: 22,
-    bottleTopY: 320, bottleScale: 1,
-    nameGap: 54, nameFont: 62,
-    krGap: 94, krFont: 28,
-    descGap: 136, descFont: 26, descLineHeight: 36,
-    notesFallbackGap: 230, notesLabelFont: 22, notesValueFont: 22,
-    notesLineHeight: 28, notesLabelGap: 36, notesTopGap: 34, notesDividerBottom: 66,
+    eyebrowY: 100, eyebrowFont: 26,
+    codeY: 226, codeFont: 110,
+    groupY: 284, groupFont: 26,
+    nameGap: 150, nameFont: 96,
+    krGap: 224, krFont: 42,
+    descGap: 288, descFont: 36, descLineHeight: 48,
+    notesFallbackGap: 460, notesLabelFont: 30, notesValueFont: 30,
+    notesLineHeight: 38, notesLabelGap: 46, notesTopGap: 42, notesDividerBottom: 80,
     footerNameOffset: 58, footerNameFont: 30,
     footerHandleOffset: 26, footerHandleFont: 20,
   },
   story: {
     H: 1920,
-    eyebrowY: 160, eyebrowFont: 26,
-    codeY: 246, codeFont: 66,
-    groupY: 288, groupFont: 24,
-    bottleTopY: 440, bottleScale: 1.12,
-    nameGap: 76, nameFont: 72,
-    krGap: 124, krFont: 32,
-    descGap: 172, descFont: 29, descLineHeight: 42,
-    notesFallbackGap: 300, notesLabelFont: 25, notesValueFont: 25,
-    notesLineHeight: 32, notesLabelGap: 44, notesTopGap: 40, notesDividerBottom: 86,
+    eyebrowY: 140, eyebrowFont: 30,
+    codeY: 300, codeFont: 130,
+    groupY: 372, groupFont: 30,
+    nameGap: 190, nameFont: 112,
+    krGap: 280, krFont: 48,
+    descGap: 360, descFont: 40, descLineHeight: 54,
+    notesFallbackGap: 560, notesLabelFont: 34, notesValueFont: 34,
+    notesLineHeight: 44, notesLabelGap: 52, notesTopGap: 48, notesDividerBottom: 90,
     footerNameOffset: 96, footerNameFont: 36,
     footerHandleOffset: 54, footerHandleFont: 23,
   },
@@ -254,10 +252,18 @@ async function drawResultCard(code, format = 'square') {
     measureWrappedLineCount(ctx, item.mid, noteColW),
     measureWrappedLineCount(ctx, item.base, noteColW)
   );
-  const bottleSpan = (360 + 26) * layout.bottleScale;
-  const descEndFromBottle = layout.descGap + (descLines - 1) * layout.descLineHeight;
-  const notesYFromBottle = Math.max(descEndFromBottle + 50, layout.notesFallbackGap);
-  const contentBottom = layout.bottleTopY + bottleSpan + notesYFromBottle
+  // Shrink the perfume-name font just enough for long names (e.g. "WILDFLOWER
+  // SPARK") to fit on one line without spilling past the canvas edges.
+  const nameMaxWidth = W * 0.86;
+  let nameFontSize = layout.nameFont;
+  ctx.font = `600 ${nameFontSize}px "Playfair Display", serif`;
+  while (ctx.measureText(item.name).width > nameMaxWidth && nameFontSize > layout.nameFont * 0.5) {
+    nameFontSize -= 2;
+    ctx.font = `600 ${nameFontSize}px "Playfair Display", serif`;
+  }
+  const descEndFromGroup = layout.descGap + (descLines - 1) * layout.descLineHeight;
+  const notesYFromGroup = Math.max(descEndFromGroup + 50, layout.notesFallbackGap);
+  const contentBottom = layout.groupY + notesYFromGroup
     + layout.notesDividerBottom + (noteLines - 1) * layout.notesLineHeight;
   const contentTop = layout.eyebrowY - layout.eyebrowFont;
   const footerTop = H - layout.footerNameOffset - layout.footerNameFont * 0.5;
@@ -266,7 +272,6 @@ async function drawResultCard(code, format = 'square') {
   const eyebrowY = layout.eyebrowY + yOffset;
   const codeY = layout.codeY + yOffset;
   const groupY = layout.groupY + yOffset;
-  const bottleTopY = layout.bottleTopY + yOffset;
 
   // Background
   const bg = ctx.createLinearGradient(0, 0, W, H);
@@ -282,7 +287,7 @@ async function drawResultCard(code, format = 'square') {
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  // Orbit ellipse decoration (framing the bottle)
+  // Orbit ellipse decoration
   ctx.save();
   ctx.translate(W * 0.5, H * 0.4);
   ctx.rotate(-0.1);
@@ -314,27 +319,24 @@ async function drawResultCard(code, format = 'square') {
   ctx.font = `500 ${layout.groupFont}px "Noto Sans KR", sans-serif`;
   ctx.fillText(`${meta.label} · ${meta.sub}`, W / 2, groupY);
 
-  // Bottle illustration — the visual centerpiece
-  const bottle = drawBottle(ctx, W / 2, bottleTopY, meta, layout.bottleScale);
-
   // Perfume name
   ctx.fillStyle = '#f6ece1';
-  ctx.font = `600 ${layout.nameFont}px "Playfair Display", serif`;
-  ctx.fillText(item.name, W / 2, bottle.bottomY + layout.nameGap);
+  ctx.font = `600 ${nameFontSize}px "Playfair Display", serif`;
+  ctx.fillText(item.name, W / 2, groupY + layout.nameGap);
 
   // Korean name
   ctx.fillStyle = meta.accent;
   ctx.font = `400 ${layout.krFont}px "Jua", sans-serif`;
-  ctx.fillText(item.nameKr, W / 2, bottle.bottomY + layout.krGap);
+  ctx.fillText(item.nameKr, W / 2, groupY + layout.krGap);
 
   // Description (wrapped, centered)
   ctx.fillStyle = hexToRgba('#f6ece1', 0.86);
   ctx.font = `400 ${layout.descFont}px "Noto Sans KR", sans-serif`;
   ctx.textAlign = 'center';
-  const descEndY = drawWrappedCentered(ctx, item.desc, W / 2, bottle.bottomY + layout.descGap, W * 0.72, layout.descLineHeight);
+  const descEndY = drawWrappedCentered(ctx, item.desc, W / 2, groupY + layout.descGap, W * 0.72, layout.descLineHeight);
 
   // Notes pyramid
-  const notesY = Math.max(descEndY + 50, bottle.bottomY + layout.notesFallbackGap);
+  const notesY = Math.max(descEndY + 50, groupY + layout.notesFallbackGap);
   ctx.strokeStyle = hexToRgba('#f6ece1', 0.18);
   ctx.beginPath();
   ctx.moveTo(W * 0.1, notesY - layout.notesTopGap);
@@ -452,100 +454,6 @@ async function drawCompatCard(codeA, codeB) {
   ctx.fillStyle = hexToRgba('#f6ece1', 0.6);
   ctx.font = `400 ${layout.footerHandleFont}px "Noto Sans KR", sans-serif`;
   ctx.fillText('@_velin_office', W / 2, H - layout.footerHandleOffset);
-}
-
-function roundRectPath(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  if (ctx.roundRect) {
-    ctx.roundRect(x, y, w, h, r);
-  } else {
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-}
-
-function drawBottle(ctx, cx, topY, meta, scale = 1) {
-  const bodyW = 250 * scale, bodyH = 360 * scale, radius = 26 * scale;
-  const bodyX = cx - bodyW / 2, bodyY = topY;
-  const capW = 104 * scale, capH = 50 * scale;
-  const neckW = 54 * scale, neckH = 28 * scale;
-  const neckY = bodyY - neckH;
-  const capY = neckY - capH;
-
-  // ground shadow
-  ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.28)';
-  ctx.beginPath();
-  ctx.ellipse(cx, bodyY + bodyH + 16 * scale, bodyW * 0.42, 20 * scale, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  // cap
-  roundRectPath(ctx, cx - capW / 2, capY, capW, capH, 10);
-  ctx.fillStyle = '#17170f';
-  ctx.fill();
-  roundRectPath(ctx, cx - capW / 2, capY, capW, capH * 0.42, 10);
-  ctx.fillStyle = 'rgba(255,255,255,0.10)';
-  ctx.fill();
-
-  // neck
-  ctx.fillStyle = 'rgba(246,236,225,0.32)';
-  ctx.fillRect(cx - neckW / 2, neckY, neckW, neckH + 4);
-
-  // body — clip to glass silhouette and paint liquid inside
-  roundRectPath(ctx, bodyX, bodyY, bodyW, bodyH, radius);
-  ctx.save();
-  ctx.clip();
-
-  const liquidTop = bodyY + bodyH * 0.14;
-  const liquidGrad = ctx.createLinearGradient(0, liquidTop, 0, bodyY + bodyH);
-  liquidGrad.addColorStop(0, hexToRgba(meta.accent, 0.92));
-  liquidGrad.addColorStop(1, hexToRgba(meta.bg2, 0.96));
-  ctx.fillStyle = liquidGrad;
-  ctx.fillRect(bodyX, liquidTop, bodyW, bodyH);
-
-  ctx.fillStyle = 'rgba(246,236,225,0.14)';
-  ctx.fillRect(bodyX, bodyY, bodyW, liquidTop - bodyY);
-
-  ctx.fillStyle = 'rgba(255,255,255,0.28)';
-  ctx.fillRect(bodyX, liquidTop - 2, bodyW, 3);
-
-  // diagonal glass highlight streak
-  ctx.save();
-  ctx.translate(bodyX + bodyW * 0.26, 0);
-  ctx.rotate(-0.22);
-  ctx.fillStyle = 'rgba(255,255,255,0.14)';
-  ctx.fillRect(-20 * scale, bodyY - 40 * scale, 40 * scale, bodyH + 80 * scale);
-  ctx.restore();
-
-  ctx.restore(); // release clip
-
-  // glass outline
-  roundRectPath(ctx, bodyX, bodyY, bodyW, bodyH, radius);
-  ctx.strokeStyle = 'rgba(246,236,225,0.5)';
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  // brand monogram plate
-  const plateW = 116 * scale, plateH = 60 * scale;
-  const plateY = bodyY + bodyH * 0.56;
-  roundRectPath(ctx, cx - plateW / 2, plateY, plateW, plateH, 8 * scale);
-  ctx.fillStyle = 'rgba(18,18,14,0.3)';
-  ctx.fill();
-  roundRectPath(ctx, cx - plateW / 2, plateY, plateW, plateH, 8 * scale);
-  ctx.strokeStyle = 'rgba(246,236,225,0.4)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.fillStyle = '#f6ece1';
-  ctx.font = `700 ${24 * scale}px "Playfair Display", serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText('VELIN', cx, plateY + plateH / 2 + 8 * scale);
-
-  return { bottomY: bodyY + bodyH + 26 * scale };
 }
 
 function drawNotesPyramid(ctx, W, y, meta, item, layout) {
